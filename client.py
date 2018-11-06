@@ -39,4 +39,6 @@ while True:
             sys.stdout.write("<You>")
             sys.stdout.write(message)
             sys.stdout.flush()
+            if message == "Quit":
+                sys.exit(0)
 server.close()

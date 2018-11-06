@@ -58,6 +58,11 @@ def clientthread(conn, addr):
                 if check[0] == "/private":
                     ip = check[1]
                     privateMSG(message, ip, conn)
+                if check[0] == "/users":
+                    newmessage = ""
+                    for a in list_addr:
+                        newmessage+=a+"::"
+                    conn.sendto(newmessage.encode(), addr)
                 else:
 
                     """prints the message and address of the 
