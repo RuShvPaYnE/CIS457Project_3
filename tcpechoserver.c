@@ -18,7 +18,7 @@
 
 int sockfd;
 int clist[10];
-int kList[10];
+unsigned char  kList[10][32];
 
 EVP_PKEY *PrivateKey;
 
@@ -172,27 +172,33 @@ void *addclient(void *arg)
 		if ((int)clist[j] < 0)
 		{
 			clist[j] = clientsocket;
-			kList[j] = dKey;
+			kList[j][0] = dKey;
 
 			break;
 		}
 	}
+	printf("\nready\n");
 	while (1)
 	{
-		char line[5000];
-		char E_message[5016];
-		int n = recv(clientsocket, line, 5000, 0);
+		unsigned char line[5016];
+		unsigned char E_message[5016];
+		//int n = recv(clientsocket, line, 5016, 0);
+		//printf("HERE");
+		int n = recv(clientsocket, line, 5016, 0);
 		unsigned char tempKey[32];
-		for (int i = 0; i < 10; i++)
-		{
-			if (clist[i] == socket)
-			{
-				snprintf(tempKey, sizeof(tempKey), kList[i]);
-			}
-		}
+		//for (int i = 0; i < 10; i++)
+		//{
+		//	if (clist[i] == socket)
+		//	{
+		//		snprintf(tempKey, sizeof(tempKey), kList[i][0]);
+		//	}
+		//}
 		unsigned char iv[16];
+		unsigned char msg[5000];
+		strncpy(msg, &line[16], 5000);
 		strncpy(iv, line, 16);
-		decrypt(E_message[strlen(line) - 5000], strlen(E_message), tempKey, iv, line);
+		decrypt(msg, 5010, dKey, iv, E_message);
+		//decrypt(line, strlen(line), tempKey, iv, E_message);
 		if (line[0] == '~')
 		{
 			char *menu = "Console Opened\n(d#)DM another user, (l)List users, or (k)kill server";
@@ -263,7 +269,7 @@ void *addclient(void *arg)
 						shutdown((int)clist[i], SHUT_RDWR);
 						close((int)clist[i]);
 						clist[i] = -20;
-						kList[i] = 0;
+						kList[i][0] = 0;
 						return 0;
 					}
 				}
