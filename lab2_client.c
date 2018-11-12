@@ -69,7 +69,7 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, u
 	if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len))
 		handleErrors();
 	plaintext_len = len;
-	if(1 != EVP_DecryptFinal_ex(ctxunsigned char 
+	if(1 != EVP_DecryptFinal_ex(ctx, plaintext +len,&len))
 		handleErrors();
 	plaintext_len += len;
 	EVP_CIPHER_CTX_free(ctx);
@@ -82,6 +82,7 @@ void* handlestuff(void* arg) {
 	char D_message[5000];
 	int n = recv(socket, line, 5016, 0);
 
+	if(n > 0){
 	unsigned char iv[16];
 	strncpy(iv,line,16);
 	decrypt(line[strlen(line)-5000],strlen(line),sym_key,iv,D_message);
@@ -94,6 +95,7 @@ void* handlestuff(void* arg) {
 		close(socket);
 		exit(0);
 	}
+}
 	//close(socket);
 }
 
@@ -104,14 +106,14 @@ void* handlestuff2(void* arg) {
 	char Final[5016];
 	//scanf("%s", line);
 	int m = read(STDIN_FILENO, line, 5000);
-	for(int a = 0; a < 5000; a++) {
-		if(line[a]=='\n') {
-			line[a]=='\0';
-		}
-	}
+	// for(int a = 0; a < 5000; a++) {
+	// 	if(line[a]=='\n') {
+	// 		line[a]=='\0';
+	// 	}
+	// }
 	unsigned char iv[16];
 	RAND_bytes(iv,16);
-
+	if(m > 0){
 	encrypt(line,strlen((char*)line),sym_key,iv,E_message);
 
 	strcat(Final,iv);
@@ -119,6 +121,7 @@ void* handlestuff2(void* arg) {
 	send(socket, Final, strlen(Final)+1, 0);
 	if(line[0]=='Q'&&line[1]=='u'&&line[2]=='i'&&line[3]=='t') {
 		exit(0);
+	}
 	}
 	//close(socket);
 }
@@ -165,9 +168,9 @@ int main(int argc, char** argv){
 
 	RAND_bytes(sym_key,32);
 
-	rsa_encrypt(sym_key,32,PublicKey,E_key);
-
-	send(sockfd,E_key,strlen(E_key)+1,0);
+	int encrpytLength = rsa_encrypt(sym_key,32,PublicKey,E_key);
+	printf("%d\n",encrpytLength);
+	send(sockfd,E_key,256,0);
 
 	while(1) {
 	

@@ -18,9 +18,9 @@
 
 int sockfd;
 int clist[10];
-int kList[];
+int kList[10];
 
-EVP_PKEY *PrivateKey; 
+EVP_PKEY *PrivateKey;
 
 void handleErrors(void)
 {
@@ -87,22 +87,28 @@ void *handleclient(void *arg)
 {
 	int clientsocket = *(int *)arg;
 	char line[5016];
+	char temp[5000];
 	char D_message[5000];
 	int n = recv(clientsocket, line, 5016, 0);
 	unsigned char tempKey[32];
-	for( int i = 0; i < 10; i++){
-		if(clist[i] == clientsocket){
-			snprinf(tempKey,sizeof(tempKey),kList[i]);
+	for (int i = 0; i < 10; i++)
+	{
+		if (clist[i] == clientsocket)
+		{
+			snprintf(tempKey, sizeof(tempKey), kList[i]);
 		}
 	}
+	if(n >0){
 	unsigned char iv[16];
-	strncpy(iv,line,16);
-	decrypt(line[strlen(line)-5000],strlen(line),tempKey,iv,D_message);
+	strncpy(iv, line, 16);
+	snprintf(temp, sizeof(tempKey), line[strlen(line)-5000]);
+	decrypt(temp, 5000, tempKey, iv, D_message);
 
 	printf("\nRecieved from client: %s\n", D_message);
 	if (D_message[0] == 'Q' && D_message[1] == 'u' && D_message[2] == 'i' && D_message[3] == 't')
 	{
 		exit(0);
+	}
 	}
 	//close(clientsocket);
 }
@@ -115,6 +121,7 @@ void *handleclient2(void *arg)
 	char Final[5016];
 	//	scanf("%s", line);
 	int m = read(STDIN_FILENO, line, 5000);
+	if(m >0){
 	for (int a = 0; a < 5000; a++)
 	{
 		if (line[a] == '\n')
@@ -124,24 +131,27 @@ void *handleclient2(void *arg)
 	}
 
 	unsigned char tempKey[32];
-	for( int i = 0; i < 10; i++){
-		if(clist[i] == socket){
-			snprinf(tempKey,sizeof(tempKey),kList[i]);
+	for (int i = 0; i < 10; i++)
+	{
+		if (clist[i] == socket)
+		{
+			snprintf(tempKey, sizeof(tempKey), kList[i]);
 		}
 	}
 
 	unsigned char iv[16];
-	RAND_bytes(iv,16);
+	RAND_bytes(iv, 16);
 
-	encrypt(line,strlen((char*)line),tempKey,iv,E_message);
+	encrypt(line, strlen((char *)line), tempKey, iv, E_message);
 
-	strcat(Final,iv);
-	strcat(Final,E_message);
+	strcat(Final, iv);
+	strcat(Final, E_message);
 
 	send(socket, line, strlen(line) + 1, 0);
 	if (line[0] == 'Q' && line[1] == 'u' && line[2] == 'i' && line[3] == 't')
 	{
 		exit(0);
+	}
 	}
 	//	close(socket);
 }
@@ -151,8 +161,10 @@ void *addclient(void *arg)
 	int clientsocket = *(int *)arg;
 	unsigned char dKey[32];
 	unsigned char key[256];
+	printf("getting key\n");
 	recv(clientsocket, key, 256, 0);
-	int decryptLength = rsa_decrypt(key,32,PrivateKey,dKey);
+	int decryptLength = rsa_decrypt(key, 256, PrivateKey, dKey);
+	printf("got the key maybe\n");
 	//clist.append(clientsocket);
 	int size = 10;
 	for (int j = 0; j < size; j++)
@@ -168,7 +180,19 @@ void *addclient(void *arg)
 	while (1)
 	{
 		char line[5000];
+		char E_message[5016];
 		int n = recv(clientsocket, line, 5000, 0);
+		unsigned char tempKey[32];
+		for (int i = 0; i < 10; i++)
+		{
+			if (clist[i] == socket)
+			{
+				snprintf(tempKey, sizeof(tempKey), kList[i]);
+			}
+		}
+		unsigned char iv[16];
+		strncpy(iv, line, 16);
+		decrypt(E_message[strlen(line) - 5000], strlen(E_message), tempKey, iv, line);
 		if (line[0] == '~')
 		{
 			char *menu = "Console Opened\n(d#)DM another user, (l)List users, or (k)kill server";
@@ -267,9 +291,9 @@ void *addclient(void *arg)
 
 int main(int argc, char **argv)
 {
-	
-	FILE* fp = fopen("RSApriv.pem","rb");
-	PrivateKey = PEM_read_PrivateKey(fp,NULL,NULL,NULL);
+
+	FILE *fp = fopen("RSApriv.pem", "rb");
+	PrivateKey = PEM_read_PrivateKey(fp, NULL, NULL, NULL);
 
 	for (int x = 0; x < 10; x++)
 	{
