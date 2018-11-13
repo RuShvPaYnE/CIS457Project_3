@@ -83,17 +83,17 @@ void* handlestuff(void* arg) {
 	int n = recv(socket, line, 5000, 0);
 
 	if(n > 0){
-	decrypt(line,16,sym_key,0,D_message);
+		decrypt(line,16,sym_key,0,D_message);
 
 
 
-	printf("\n%s\n", D_message);
-	if(D_message[0]=='Q'&&D_message[1]=='u'&&D_message[2]=='i'&&D_message[3]=='t') {
-		shutdown(socket, SHUT_RDWR);
-		close(socket);
-		exit(0);
+		printf("\n%s\n", D_message);
+		if(D_message[0]=='Q'&&D_message[1]=='u'&&D_message[2]=='i'&&D_message[3]=='t') {
+			shutdown(socket, SHUT_RDWR);
+			close(socket);
+			exit(0);
+		}
 	}
-}
 	//close(socket);
 }
 

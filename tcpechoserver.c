@@ -274,8 +274,17 @@ void *addclient(void *arg)
 		else
 		{
 			printf("\n<%d> says: %s", clientsocket, line);
+			for(int x = 0; x < 10; x++) {
+				if(clist[x]==clientsocket) {
+					for(int y = 0; y < 32; y++) {
+						dKey[y]=kList[x][y];
+					}
+				}
+			}
 			char newline[5000];
+			char eline[5000];
 			snprintf(newline, sizeof(newline), "<%d> posts: %s", clientsocket, line);
+			encrypt(newline, strlen((char*)line), dKey, 0, eline);
 			for (int i = 0; i < size; i++)
 			{
 				if (clist[i] > 0)
