@@ -277,14 +277,14 @@ void *addclient(void *arg)
 			for(int x = 0; x < 10; x++) {
 				if(clist[x]==clientsocket) {
 					for(int y = 0; y < 32; y++) {
-						dKey[x] =kList[x][y];
-						
+						//dKey[x] =kList[x][y];
+						dKey[y] = kList[x][y];
 					}
 						BIO_dump_fp (stdout, (const char *)dKey, 32);
 						char newline[5000];
 						char eline[5000];
 						snprintf(newline, sizeof(newline), "<%d> posts: %s", clientsocket, line);
-						encrypt(newline, strlen((char*)line), dKey, 0, eline);
+						encrypt(newline, strlen((char*)newline), dKey, 0, eline);
 						send((int)clist[x], newline, strlen(newline) + 1, 0);
 				}
 			}
