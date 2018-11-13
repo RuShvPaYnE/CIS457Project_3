@@ -78,13 +78,13 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, u
 
 void* handlestuff(void* arg) {
 	int socket = *(int*)arg;
-	char line[5000];
-	char D_message[5000];
+	unsigned char line[5000];
+	unsigned char D_message[5000];
 	int n = recv(socket, line, 5000, 0);
 
 	if(n > 0){
-		BIO_dump_fp (stdout, (const char *)sym_key, 32);
-		decrypt(line,16,sym_key,0,D_message);
+		//BIO_dump_fp (stdout, (const char *)line, 5000);
+		decrypt(line,32,sym_key,0,D_message);
 
 
 		printf("\n%s\n", D_message);
@@ -113,11 +113,10 @@ void* handlestuff2(void* arg) {
 	RAND_bytes(iv,16);
 	if(m > 0){
 	int ELength = encrypt(line,strlen((char*)line),sym_key,0,E_message);
-	printf("size of iv %u",iv);
 
 	//strcpy((char*)Final,(char*)iv);
 	strcpy((char*)Final,(char*)E_message);
-	BIO_dump_fp (stdout, (const char *)iv, 16);
+	printf("lengt of encrpt, %d",ELength);
 	send(socket, E_message, strlen(E_message)+1, 0);
 	if(line[0]=='Q'&&line[1]=='u'&&line[2]=='i'&&line[3]=='t') {
 		exit(0);
@@ -168,7 +167,7 @@ int main(int argc, char** argv){
 
 	RAND_bytes(sym_key,32);
 	printf(" sym %u\n",sym_key);
-	BIO_dump_fp (stdout, (const char *)sym_key, 32);
+	//BIO_dump_fp (stdout, (const char *)sym_key, 32);
 	int encrpytLength = rsa_encrypt(sym_key,32,PublicKey,E_key);
 	printf("%d\n",encrpytLength);
 	send(sockfd,E_key,256,0);

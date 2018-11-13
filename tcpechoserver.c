@@ -172,7 +172,9 @@ void *addclient(void *arg)
 		if ((int)clist[j] < 0)
 		{
 			clist[j] = clientsocket;
-			kList[j][0] = &dKey;
+			for(int x = 0; x<32;x++){
+			kList[j][x] = dKey[x];
+			}
 
 			break;
 		}
@@ -276,16 +278,19 @@ void *addclient(void *arg)
 			printf("\n<%d> says: %s", clientsocket, line);
 			for(int x = 0; x < 10; x++) {
 				if(clist[x]==clientsocket) {
-					for(int y = 0; y < 32; y++) {
-						//dKey[x] =kList[x][y];
-						dKey[y] = kList[x][y];
-					}
-						BIO_dump_fp (stdout, (const char *)dKey, 32);
+					//memcpy(dKey,kList[x],32);
+					// for(int y = 0; y < 32; y++) {
+					// 	//dKey[x] =kList[x][y];
+					// 	dKey[y] = kList[x][y];
+						
+					// }
 						char newline[5000];
 						char eline[5000];
 						snprintf(newline, sizeof(newline), "<%d> posts: %s", clientsocket, line);
-						encrypt(newline, strlen((char*)newline), dKey, 0, eline);
-						send((int)clist[x], newline, strlen(newline) + 1, 0);
+						int langE = encrypt(newline, strlen((char*)newline), dKey, 0, eline);
+						printf("LENGH OF ENCRYPT%d\n",langE);
+						//BIO_dump_fp (stdout, (const char *)newline, 5000);
+						send((int)clist[x], eline, strlen(eline) + 1, 0);
 				}
 			}
 			// char newline[5000];
