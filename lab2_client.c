@@ -78,14 +78,12 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, u
 
 void* handlestuff(void* arg) {
 	int socket = *(int*)arg;
-	char line[5016];
+	char line[5000];
 	char D_message[5000];
-	int n = recv(socket, line, 5016, 0);
+	int n = recv(socket, line, 5000, 0);
 
 	if(n > 0){
-	unsigned char iv[16];
-	strncpy(iv,line,16);
-	decrypt(line[strlen(line)-5000],strlen(line),sym_key,iv,D_message);
+	decrypt(line,16,sym_key,0,D_message);
 
 
 
@@ -101,9 +99,9 @@ void* handlestuff(void* arg) {
 
 void* handlestuff2(void* arg) {
 	int socket = *(int*)arg;
-	char line[5000];
-	char E_message[5000];
-	char Final[5016];
+	unsigned char line[5000];
+	unsigned char E_message[5000];
+	unsigned char Final[5016];
 	//scanf("%s", line);
 	int m = read(STDIN_FILENO, line, 5000);
 	// for(int a = 0; a < 5000; a++) {
@@ -114,11 +112,13 @@ void* handlestuff2(void* arg) {
 	unsigned char iv[16];
 	RAND_bytes(iv,16);
 	if(m > 0){
-	encrypt(line,strlen((char*)line),sym_key,iv,E_message);
+	int ELength = encrypt(line,strlen((char*)line),sym_key,0,E_message);
+	printf("size of iv %u",iv);
 
-	strcat(Final,iv);
-	strcat(Final,E_message);
-	send(socket, Final, strlen(Final)+1, 0);
+	//strcpy((char*)Final,(char*)iv);
+	strcpy((char*)Final,(char*)E_message);
+	BIO_dump_fp (stdout, (const char *)iv, 16);
+	send(socket, E_message, strlen(E_message)+1, 0);
 	if(line[0]=='Q'&&line[1]=='u'&&line[2]=='i'&&line[3]=='t') {
 		exit(0);
 	}
@@ -167,7 +167,8 @@ int main(int argc, char** argv){
 	PublicKey = PEM_read_PUBKEY(fp,NULL,NULL,NULL);
 
 	RAND_bytes(sym_key,32);
-
+	printf(" sym %u\n",sym_key);
+	BIO_dump_fp (stdout, (const char *)sym_key, 32);
 	int encrpytLength = rsa_encrypt(sym_key,32,PublicKey,E_key);
 	printf("%d\n",encrpytLength);
 	send(sockfd,E_key,256,0);

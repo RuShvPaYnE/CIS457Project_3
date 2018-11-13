@@ -18,7 +18,7 @@
 
 int sockfd;
 int clist[10];
-unsigned char  kList[10][32];
+unsigned char kList[10][32];
 
 EVP_PKEY *PrivateKey;
 
@@ -98,17 +98,19 @@ void *handleclient(void *arg)
 			snprintf(tempKey, sizeof(tempKey), kList[i]);
 		}
 	}
-	if(n >0){
-	unsigned char iv[16];
-	strncpy(iv, line, 16);
-	snprintf(temp, sizeof(tempKey), line[strlen(line)-5000]);
-	decrypt(temp, 5000, tempKey, iv, D_message);
-
-	printf("\nRecieved from client: %s\n", D_message);
-	if (D_message[0] == 'Q' && D_message[1] == 'u' && D_message[2] == 'i' && D_message[3] == 't')
+	if (n > 0)
 	{
-		exit(0);
-	}
+		unsigned char iv[16];
+		strncpy(iv, line, 16);
+		int x =strlen(line) - 5000;
+		snprintf(temp, sizeof(tempKey), line[x]);
+		decrypt(temp, 16, tempKey, iv, D_message);
+
+		printf("\nRecieved from client: %s\n", D_message);
+		if (D_message[0] == 'Q' && D_message[1] == 'u' && D_message[2] == 'i' && D_message[3] == 't')
+		{
+			exit(0);
+		}
 	}
 	//close(clientsocket);
 }
@@ -121,37 +123,35 @@ void *handleclient2(void *arg)
 	char Final[5016];
 	//	scanf("%s", line);
 	int m = read(STDIN_FILENO, line, 5000);
-	if(m >0){
-	for (int a = 0; a < 5000; a++)
+	if (m > 0)
 	{
-		if (line[a] == '\n')
+		for (int a = 0; a < 5000; a++)
 		{
-			line[a] == '\0';
+			if (line[a] == '\n')
+			{
+				line[a] == '\0';
+			}
 		}
-	}
 
-	unsigned char tempKey[32];
-	for (int i = 0; i < 10; i++)
-	{
-		if (clist[i] == socket)
+		unsigned char tempKey[32];
+		for (int i = 0; i < 10; i++)
 		{
-			snprintf(tempKey, sizeof(tempKey), kList[i]);
+			if (clist[i] == socket)
+			{
+				snprintf(tempKey, sizeof(tempKey), kList[i]);
+			}
 		}
-	}
 
-	unsigned char iv[16];
-	RAND_bytes(iv, 16);
+		unsigned char iv[16];
+		RAND_bytes(iv, 16);
 
-	encrypt(line, strlen((char *)line), tempKey, iv, E_message);
+		encrypt(line, strlen((char *)line), tempKey, 0, E_message);
 
-	strcat(Final, iv);
-	strcat(Final, E_message);
-
-	send(socket, line, strlen(line) + 1, 0);
-	if (line[0] == 'Q' && line[1] == 'u' && line[2] == 'i' && line[3] == 't')
-	{
-		exit(0);
-	}
+		send(socket, line, strlen(line) + 1, 0);
+		if (line[0] == 'Q' && line[1] == 'u' && line[2] == 'i' && line[3] == 't')
+		{
+			exit(0);
+		}
 	}
 	//	close(socket);
 }
@@ -172,7 +172,7 @@ void *addclient(void *arg)
 		if ((int)clist[j] < 0)
 		{
 			clist[j] = clientsocket;
-			kList[j][0] = dKey;
+			kList[j][0] = &dKey;
 
 			break;
 		}
@@ -180,11 +180,11 @@ void *addclient(void *arg)
 	printf("\nready\n");
 	while (1)
 	{
-		unsigned char line[5016];
-		unsigned char E_message[5016];
+		unsigned char line[5000];
+		unsigned char E_message[5000];
 		//int n = recv(clientsocket, line, 5016, 0);
 		//printf("HERE");
-		int n = recv(clientsocket, line, 5016, 0);
+		int n = recv(clientsocket, E_message, 5000, 0);
 		unsigned char tempKey[32];
 		//for (int i = 0; i < 10; i++)
 		//{
@@ -193,11 +193,7 @@ void *addclient(void *arg)
 		//		snprintf(tempKey, sizeof(tempKey), kList[i][0]);
 		//	}
 		//}
-		unsigned char iv[16];
-		unsigned char msg[5000];
-		strncpy(msg, &line[16], 5000);
-		strncpy(iv, line, 16);
-		decrypt(msg, 5010, dKey, iv, E_message);
+		decrypt(E_message, 16, dKey, 0,line);
 		//decrypt(line, strlen(line), tempKey, iv, E_message);
 		if (line[0] == '~')
 		{
