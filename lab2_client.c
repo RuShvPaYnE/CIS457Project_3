@@ -83,6 +83,7 @@ void* handlestuff(void* arg) {
 	int n = recv(socket, line, 5000, 0);
 
 	if(n > 0){
+		BIO_dump_fp (stdout, (const char *)sym_key, 32);
 		decrypt(line,16,sym_key,0,D_message);
 
 

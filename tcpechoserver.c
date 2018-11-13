@@ -277,23 +277,30 @@ void *addclient(void *arg)
 			for(int x = 0; x < 10; x++) {
 				if(clist[x]==clientsocket) {
 					for(int y = 0; y < 32; y++) {
-						dKey[y]=kList[x][y];
+						dKey[x] =kList[x][y];
+						
 					}
+						BIO_dump_fp (stdout, (const char *)dKey, 32);
+						char newline[5000];
+						char eline[5000];
+						snprintf(newline, sizeof(newline), "<%d> posts: %s", clientsocket, line);
+						encrypt(newline, strlen((char*)line), dKey, 0, eline);
+						send((int)clist[x], newline, strlen(newline) + 1, 0);
 				}
 			}
-			char newline[5000];
-			char eline[5000];
-			snprintf(newline, sizeof(newline), "<%d> posts: %s", clientsocket, line);
-			encrypt(newline, strlen((char*)line), dKey, 0, eline);
-			for (int i = 0; i < size; i++)
-			{
-				if (clist[i] > 0)
-				{
-					int m = send((int)clist[i], newline, strlen(newline) + 1, 0);
-					//printf("sent to %d", clist[i]);
-					//printf("message sent to %d", clientsocket);
-				}
-			}
+			// char newline[5000];
+			// char eline[5000];
+			// snprintf(newline, sizeof(newline), "<%d> posts: %s", clientsocket, line);
+			// encrypt(newline, strlen((char*)line), dKey, 0, eline);
+			// for (int i = 0; i < size; i++)
+			// {
+			// 	if (clist[i] > 0)
+			// 	{
+			// 		int m = send((int)clist[i], newline, strlen(newline) + 1, 0);
+			// 		//printf("sent to %d", clist[i]);
+			// 		//printf("message sent to %d", clientsocket);
+			// 	}
+			// }
 		}
 		//recv and send back out?
 	}
